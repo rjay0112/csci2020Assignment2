@@ -2,21 +2,24 @@ import java.io.*;
 import java.net.*;
 
 public class ServerTest{
+  private ServerSocket serverSocket=null;
+  public ServerTest(int port)throws IOException{
+    serverSocket=new ServerSocket(port);
+  }
   public static void main(String[] args) {
     try{
-      ServerSocket serverSocket=new ServerSocket(8080);
-      while(true){
-        Socket clientSocket=serverSocket.accept();
-        System.out.println("hi success");
-        BufferedReader input=new BufferedReader(
-        new InputStreamReader(clientSocket.getInputStream()));
-        //while()
-        String message=input.readLine();
-        System.out.println(message);
-      }
+      ServerTest server=new ServerTest(8080);
+      server.handleRequests();
     }catch(Exception e){
       System.err.println("cannot connect");
     }
-
+  }
+  public void handleRequests()throws IOException{
+      while(true){
+        Socket clientSocket=serverSocket.accept();
+        ServerHandler handler=new ServerHandler(clientSocket);
+        Thread handlerThread=new Thread(handler);
+        handlerThread.start();
+      }
   }
 }
