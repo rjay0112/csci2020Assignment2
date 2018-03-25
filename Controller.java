@@ -14,23 +14,49 @@ public class Controller {
     @FXML Button download;
     @FXML Button upload;
     @FXML ListView<File> localFiles;
+    ObservableList<File> userFileList;
     @FXML ListView<File> serverFiles;
+    ObservableList<File> serverFileList;
+    BufferedReader recieve;
+    PrintWriter sendCommand;
     Socket userconn;
     File directName;
-    public void initialize(){
+    public void initialize()throws IOException{
       DirectoryChooser chooseDir=new DirectoryChooser();
       chooseDir.setTitle("select folder you want to share");
       directName=chooseDir.showDialog(new Stage());
-      filluserfiles();
+      fillUserFiles();
+      fillServerFiles();
     }
 
-    public void filluserfiles(){
-      ObservableList<File> userFileList=FXCollections.observableArrayList();
+    public void fillServerFiles()throws IOException{
+      serverFileList=FXCollections.observableArrayList();
+      userconn=new Socket("localhost",8080);
+      sendCommand=new PrintWriter(userconn.getOutputStream(),true);
+      sendCommand.println("DIR");
+      recieve=new BufferedReader(new InputStreamReader(userconn.getInputStream()));
+      String file="";
+      String line=null;
+      while((line=recieve.readLine())!=null){
+        System.out.println(line);
+        serverFileList.add(new File(line));
+      }
+      serverFiles.setItems(serverFileList);
+      serverFiles.setCellFactory(lv -> new ListCell<File>(){
+        @Override
+        protected void updateItem(File file, boolean empty){
+          super.updateItem(file,empty);
+          setText(file==null ? null : file.getName());
+        }
+      });
+    }
+
+    public void fillUserFiles(){
+      userFileList=FXCollections.observableArrayList();
       File[] initialFiles=directName.listFiles();
       for(File current:initialFiles){
         if(!current.isDirectory()){
           userFileList.add(current);
-          System.out.println(current.getName());
         }
       }
       localFiles.setItems(userFileList);
@@ -41,23 +67,37 @@ public class Controller {
           setText(file==null ? null : file.getName());
         }
       });
+
     }
 
-    public void download(ActionEvent event){
+    public void download(ActionEvent event)throws IOException{
         System.out.println("download");
+        recieve=new BufferedReader(new InputStreamReader(
+                          userconn.getInputStream()));
     }
     public void upload(ActionEvent event){
       try{
+        //connect to server
         userconn=new Socket("localhost",8080);
-        PrintWriter out=new PrintWriter(userconn.getOutputStream(),true);
-        BufferedReader in=new BufferedReader(new InputStreamReader(
-                          userconn.getInputStream()));
-        out.println("upload");
-        out.flush();
-        System.out.println(in.readLine());
-        ObservableList<File> serverFileList=FXCollections.observableArrayList();
-        serverFileList.add(localFiles.getSelectionModel().getSelectedItem());
-        serverFiles.setItems(serverFileList);
+        //add selected file to server
+        File selectedFile=localFiles.getSelectionModel().getSelectedItem();
+        serverFiles.getItems().add(selectedFile);
+        sendCommand=new PrintWriter(userconn.getOutputStream(),true);
+        BufferedReader fileIn=new BufferedReader(new FileReader(selectedFile));
+        String line=null;
+        String contents="";
+        int linesRead=0;
+        while((line=fileIn.readLine())!=null){
+          contents+=line+"\n";
+          linesRead++;
+        }
+        fileIn.close();
+
+        sendCommand.println("UPLOAD "+selectedFile.getName()+" "+
+                    Integer.toString(linesRead)+"\n"+contents);
+        sendCommand.flush();
+        sendCommand.close();
+        userconn.close();
       }catch(Exception e){
         System.err.println("cant connect");
       }
