@@ -11,7 +11,6 @@ public class ServerTest{
 
   public static void setFiles(String fileName){
     serverSideFiles.add(fileName);
-    System.out.println(fileName);
   }
   public static ArrayList<String> getFileList(){
     return serverSideFiles;
@@ -37,7 +36,6 @@ public class ServerTest{
     }
     File[] initialFiles=serverFiles.listFiles();
     for(File current:initialFiles){
-      System.out.println("hiiii");
       setFiles(current.getName());
     }
   }

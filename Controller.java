@@ -37,11 +37,14 @@ public class Controller {
       recieve=new BufferedReader(new InputStreamReader(userconn.getInputStream()));
       String file="";
       String line=null;
+      //recieve already stored files
       while((line=recieve.readLine())!=null){
-        System.out.println(line);
         serverFileList.add(new File(line));
       }
       serverFiles.setItems(serverFileList);
+      recieve.close();
+      userconn.close();
+      //have server list show file name not whole directory
       serverFiles.setCellFactory(lv -> new ListCell<File>(){
         @Override
         protected void updateItem(File file, boolean empty){
@@ -71,9 +74,20 @@ public class Controller {
     }
 
     public void download(ActionEvent event)throws IOException{
-        System.out.println("download");
-        recieve=new BufferedReader(new InputStreamReader(
-                          userconn.getInputStream()));
+      userconn=new Socket("localhost",8080);
+        sendCommand=new PrintWriter(userconn.getOutputStream(),true);
+        File requestedFile=serverFiles.getSelectionModel().getSelectedItem();
+        sendCommand.println("DOWNLOAD "+requestedFile.getName());
+        PrintWriter outputFile=new PrintWriter(requestedFile);
+        recieve=new BufferedReader(new InputStreamReader(userconn.getInputStream()));
+        String line=null;
+        while((line=recieve.readLine())!=null){
+          outputFile.println(line);
+        }
+        recieve.close();
+        outputFile.close();
+        localFiles.getItems().add(requestedFile);
+
     }
     public void upload(ActionEvent event){
       try{
@@ -86,16 +100,13 @@ public class Controller {
         BufferedReader fileIn=new BufferedReader(new FileReader(selectedFile));
         String line=null;
         String contents="";
-        int linesRead=0;
         while((line=fileIn.readLine())!=null){
           contents+=line+"\n";
-          linesRead++;
         }
         fileIn.close();
 
-        sendCommand.println("UPLOAD "+selectedFile.getName()+" "+
-                    Integer.toString(linesRead)+"\n"+contents);
-        sendCommand.flush();
+        sendCommand.println("UPLOAD "+selectedFile.getName()
+                    +"\n"+contents);
         sendCommand.close();
         userconn.close();
       }catch(Exception e){

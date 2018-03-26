@@ -22,7 +22,6 @@ public class ServerHandler implements Runnable{
     try{
       String request=requestInput.readLine();
       handleRequest(request);
-      System.out.println(request);
     }catch(Exception e){
       System.err.println("cant print request");
     }
@@ -34,10 +33,7 @@ public class ServerHandler implements Runnable{
 
     if(command.equalsIgnoreCase("UPLOAD")){
       String fileName=tokenizer.nextToken();
-      System.out.println(fileName);
-      int size=Integer.parseInt(tokenizer.nextToken());
-      System.out.println(size);
-      recieveFile(fileName,size);
+      recieveFile(fileName);
     }else if(command.equalsIgnoreCase("DOWNLOAD")){
       String fileName=tokenizer.nextToken();
       sendFile(fileName);
@@ -51,18 +47,17 @@ public class ServerHandler implements Runnable{
     }
   }
 
-  public void recieveFile(String fileName, int size)throws IOException{
+  public void recieveFile(String fileName)throws IOException{
     String file="";
     String fileLine=null;
-    for (int i=0;i<size;i++){
-      file+=requestInput.readLine()+"\n";
+    while((fileLine=requestInput.readLine())!=null){
+      file+=fileLine+"\n";
     }
     ServerTest.setFiles(fileName);
     File addedFile=new File("Server Files/"+fileName);
     PrintWriter outPutFile = new PrintWriter(addedFile);
     outPutFile.print(file);
     outPutFile.close();
-    System.out.println("file "+fileName+"stuff in it \n"+file);
   }
 
   public void sendFile(String fileName)throws IOException{
@@ -70,8 +65,9 @@ public class ServerHandler implements Runnable{
     BufferedReader fileIn=new BufferedReader(new FileReader(fileToSend));
     String line=null;
     while((line=fileIn.readLine())!=null){
-      System.out.println(line);
+      responseOutput.println(line);
     }
+    responseOutput.close();
   }
 
 
