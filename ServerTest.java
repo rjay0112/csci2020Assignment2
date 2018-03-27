@@ -5,11 +5,11 @@ import java.util.*;
 public class ServerTest{
   public static String test="Tester";
   private ServerSocket serverSocket=null;
-  private static ArrayList<String> serverSideFiles;
+  private static volatile ArrayList<String> serverSideFiles;
 
   //private SharedState serverArray;
 
-  public static void setFiles(String fileName){
+  public static synchronized void setFiles(String fileName){
     serverSideFiles.add(fileName);
   }
   public static ArrayList<String> getFileList(){

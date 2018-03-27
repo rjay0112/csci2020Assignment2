@@ -1,6 +1,7 @@
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
+import javafx.scene.control.TextField;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.ListView;
@@ -13,6 +14,8 @@ import javafx.scene.control.ListCell;
 public class Controller {
     @FXML Button download;
     @FXML Button upload;
+    @FXML Button refreshButton;
+    @FXML TextField warningArea;
     @FXML ListView<File> localFiles;
     ObservableList<File> userFileList;
     @FXML ListView<File> serverFiles;
@@ -21,11 +24,21 @@ public class Controller {
     PrintWriter sendCommand;
     Socket userconn;
     File directName;
+    boolean repeated;
+    String clientSavePath;
+
     public void initialize()throws IOException{
       DirectoryChooser chooseDir=new DirectoryChooser();
       chooseDir.setTitle("select folder you want to share");
       directName=chooseDir.showDialog(new Stage());
+      clientSavePath=directName.getAbsolutePath();
+      warningArea.setEditable(false);
       fillUserFiles();
+      fillServerFiles();
+    }
+
+    public void refresh(ActionEvent event)throws IOException{
+      warningArea.setText(" ");
       fillServerFiles();
     }
 
@@ -74,43 +87,75 @@ public class Controller {
     }
 
     public void download(ActionEvent event)throws IOException{
-      userconn=new Socket("localhost",8080);
-        sendCommand=new PrintWriter(userconn.getOutputStream(),true);
-        File requestedFile=serverFiles.getSelectionModel().getSelectedItem();
-        sendCommand.println("DOWNLOAD "+requestedFile.getName());
-        PrintWriter outputFile=new PrintWriter(requestedFile);
-        recieve=new BufferedReader(new InputStreamReader(userconn.getInputStream()));
-        String line=null;
-        while((line=recieve.readLine())!=null){
-          outputFile.println(line);
+        if(serverFiles.getSelectionModel().getSelectedItem()!=null){
+          repeated=false;
+          warningArea.setText(" ");
+          String requestedFileName=serverFiles.getSelectionModel().getSelectedItem().getName();
+          File requestedFile=new File(clientSavePath+"/"+requestedFileName);
+          ObservableList<File>runThrough=localFiles.getItems();
+          for (File currentFile:runThrough){
+            if(currentFile.getName().equalsIgnoreCase(requestedFileName)){
+              repeated=true;
+            }
+          }
+          if(!repeated){
+            userconn=new Socket("localhost",8080);
+            sendCommand=new PrintWriter(userconn.getOutputStream(),true);
+            sendCommand.println("DOWNLOAD "+requestedFileName);
+            PrintWriter outputFile=new PrintWriter(requestedFile);
+            recieve=new BufferedReader(new InputStreamReader(userconn.getInputStream()));
+            String line=null;
+            while((line=recieve.readLine())!=null){
+              outputFile.println(line);
+            }
+            recieve.close();
+            localFiles.getItems().add(requestedFile);
+            outputFile.close();
+          }else{
+            warningArea.setText("ERROR: File "+requestedFileName+" already exists locally");
+          }
+        }else{
+          warningArea.setText("ERROR: Please select a file to download");
         }
-        recieve.close();
-        outputFile.close();
-        localFiles.getItems().add(requestedFile);
 
     }
-    public void upload(ActionEvent event){
-      try{
-        //connect to server
-        userconn=new Socket("localhost",8080);
+    public void upload(ActionEvent event)throws IOException{
+      //connect to server
+      if(localFiles.getSelectionModel().getSelectedItem()!=null){
+        repeated=false;
+        warningArea.setText(" ");
         //add selected file to server
         File selectedFile=localFiles.getSelectionModel().getSelectedItem();
-        serverFiles.getItems().add(selectedFile);
-        sendCommand=new PrintWriter(userconn.getOutputStream(),true);
-        BufferedReader fileIn=new BufferedReader(new FileReader(selectedFile));
-        String line=null;
-        String contents="";
-        while((line=fileIn.readLine())!=null){
-          contents+=line+"\n";
-        }
-        fileIn.close();
+        String selectedFileName=selectedFile.getName();
 
-        sendCommand.println("UPLOAD "+selectedFile.getName()
-                    +"\n"+contents);
-        sendCommand.close();
-        userconn.close();
-      }catch(Exception e){
-        System.err.println("cant connect");
+        ObservableList<File>runThrough=serverFiles.getItems();
+        for (File currentFile:runThrough){
+          if(currentFile.getName().equalsIgnoreCase(selectedFileName)){
+            repeated=true;
+          }
+        }
+        if(!repeated){
+          userconn=new Socket("localhost",8080);
+          sendCommand=new PrintWriter(userconn.getOutputStream(),true);
+          BufferedReader fileIn=new BufferedReader(new FileReader(selectedFile));
+          String line=null;
+          String contents="";
+          while((line=fileIn.readLine())!=null){
+            contents+=line+"\n";
+          }
+          fileIn.close();
+          serverFiles.getItems().add(selectedFile);
+          sendCommand.println("UPLOAD "+selectedFile.getName()
+                      +"\n"+contents);
+          sendCommand.close();
+          userconn.close();
+        }else{
+          warningArea.setText("ERROR: File "+selectedFileName+" already exists on server");
+        }
+
+      }else{
+        warningArea.setText("ERROR: Please select a file to upload");
       }
+
     }
 }

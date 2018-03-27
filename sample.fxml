@@ -3,6 +3,7 @@
 
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.control.TableView?>
@@ -11,23 +12,42 @@
 <BorderPane fx:controller="Controller"
             xmlns:fx="http://javafx.com/fxml">
     <top>
-        <GridPane fx:id="topbuttons" alignment="BASELINE_LEFT">
-            <Button fx:id="download" onAction="#download" text="download"
+        <GridPane fx:id="topbuttons" alignment="TOP_CENTER" minHeight="90">
+            <Button fx:id="download" onAction="#download" text="Download File"
                     GridPane.rowIndex="0" GridPane.columnIndex="0"/>
-            <Button fx:id="upload" onAction="#upload" text="upload"
+            <Button fx:id="upload" onAction="#upload" text="Upload File"
                     GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+            <Button fx:id="refreshButton" text="Refresh Server File List" onAction="#refresh"
+                    GridPane.rowIndex="0" GridPane.columnIndex="2"/>
+            <TextField fx:id="warningArea" GridPane.rowIndex="1"
+                        GridPane.columnIndex="0" GridPane.columnSpan="3"
+                        promptText="Welcome to the File Transfer System!"/>
         </GridPane>
     </top>
     <center>
-        <SplitPane fx:id="fileOverviewPane">
+        <GridPane alignment="BASELINE_CENTER" maxHeight="50">
+            <Label text="Client Files"
+              GridPane.rowIndex="0"
+              GridPane.columnIndex="0"
+              minWidth="250"
+              alignment="BASELINE_CENTER"/>
+            <Label text="Server Files"
+              GridPane.rowIndex="0"
+              GridPane.columnIndex="1"
+              minWidth="250"
+              alignment="BASELINE_CENTER"/>
+        </GridPane>
+    </center>
+    <bottom>
+        <SplitPane fx:id="fileOverviewPane" minHeight="400">
             <items>
-                <ListView fx:id="serverFiles">
+                <ListView fx:id="localFiles">
 
                 </ListView>
-                <ListView fx:id="localFiles">
+                <ListView fx:id="serverFiles">
 
                 </ListView>
             </items>
         </SplitPane>
-    </center>
+    </bottom>
 </BorderPane>
