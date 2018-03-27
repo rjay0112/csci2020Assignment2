@@ -6,6 +6,7 @@ public class ClientConnectionHandler implements Runnable{
   private Socket socket;
   private BufferedReader requestInput=null;
   private PrintWriter responseOutput=null;
+
   public ClientConnectionHandler(Socket socket){
     this.socket=socket;
     try{
@@ -15,9 +16,9 @@ public class ClientConnectionHandler implements Runnable{
     }catch(Exception e){
       System.err.println("cant get inputStream");
     }
-
   }
 
+  //reads in requests from client
   public void run(){
     try{
       String request=requestInput.readLine();
@@ -25,8 +26,10 @@ public class ClientConnectionHandler implements Runnable{
     }catch(Exception e){
       System.err.println("cant print request");
     }
-
   }
+
+  //determines what type of request and sends
+  //to appropriate method
   public void handleRequest(String request)throws IOException{
     StringTokenizer tokenizer=new StringTokenizer(request);
     String command=tokenizer.nextToken();
@@ -37,7 +40,6 @@ public class ClientConnectionHandler implements Runnable{
     }else if(command.equalsIgnoreCase("DOWNLOAD")){
       String fileName=tokenizer.nextToken();
       sendFile(fileName);
-      responseOutput.println("download to be added");
     }else if(command.equalsIgnoreCase("DIR")){
       for(int i=0;i<Server.getFileList().size();i++){
         String name=Server.getFileList().get(i);
@@ -47,6 +49,7 @@ public class ClientConnectionHandler implements Runnable{
     }
   }
 
+  //takes in client upload and adds file to Server file list
   public void recieveFile(String fileName)throws IOException{
     String file="";
     String fileLine=null;
@@ -60,6 +63,8 @@ public class ClientConnectionHandler implements Runnable{
     outPutFile.close();
   }
 
+  //takes in client download requested file and sends
+  //the file to the client
   public void sendFile(String fileName)throws IOException{
     File fileToSend=new File("Server Files/"+fileName);
     BufferedReader fileIn=new BufferedReader(new FileReader(fileToSend));
@@ -69,6 +74,4 @@ public class ClientConnectionHandler implements Runnable{
     }
     responseOutput.close();
   }
-
-
 }

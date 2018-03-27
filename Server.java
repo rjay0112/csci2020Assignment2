@@ -3,23 +3,24 @@ import java.net.*;
 import java.util.*;
 
 public class Server{
-  public static String test="Tester";
   private ServerSocket serverSocket=null;
   private static volatile ArrayList<String> serverSideFiles;
 
-  //private SharedState serverArray;
-
+  //add name of file added to the server list
   public static synchronized void setFiles(String fileName){
     serverSideFiles.add(fileName);
   }
+
   public static ArrayList<String> getFileList(){
     return serverSideFiles;
   }
 
+  //initialize server socket and list
   public Server(int port)throws IOException{
     serverSocket=new ServerSocket(port);
     serverSideFiles=new ArrayList<String>();
   }
+
   public static void main(String[] args) {
     try{
       Server server=new Server(8080);
@@ -29,6 +30,9 @@ public class Server{
       System.err.println("cannot connect");
     }
   }
+
+  //sets up server file directory and any files already stored
+  //useful in case server closes, all files are not lost
   public void initialFileSetup()throws IOException{
     File serverFiles=new File("Server Files");
     if(!serverFiles.exists()){
@@ -39,6 +43,9 @@ public class Server{
       setFiles(current.getName());
     }
   }
+
+  //accept all incoming socket connections and handle their
+  //requests in new threads
   public void handleRequests()throws IOException{
       while(true){
         Socket clientSocket=serverSocket.accept();
