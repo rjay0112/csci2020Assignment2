@@ -6,9 +6,9 @@ import javafx.application.Application;
 
 import java.io.IOException;
 
-public class Visuals extends Application{
+public class Client extends Application{
     public static void main(String[] args){
-        Application.launch(Visuals.class,args);
+        Application.launch(Client.class,args);
     }
     @Override
     public void start(Stage stage)throws Exception{

@@ -39,8 +39,8 @@ public class ServerHandler implements Runnable{
       sendFile(fileName);
       responseOutput.println("download to be added");
     }else if(command.equalsIgnoreCase("DIR")){
-      for(int i=0;i<ServerTest.getFileList().size();i++){
-        String name=ServerTest.getFileList().get(i);
+      for(int i=0;i<Server.getFileList().size();i++){
+        String name=Server.getFileList().get(i);
         responseOutput.println(name);
       }
       responseOutput.close();
@@ -53,7 +53,7 @@ public class ServerHandler implements Runnable{
     while((fileLine=requestInput.readLine())!=null){
       file+=fileLine+"\n";
     }
-    ServerTest.setFiles(fileName);
+    Server.setFiles(fileName);
     File addedFile=new File("Server Files/"+fileName);
     PrintWriter outPutFile = new PrintWriter(addedFile);
     outPutFile.print(file);

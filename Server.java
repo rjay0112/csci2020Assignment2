@@ -2,7 +2,7 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 
-public class ServerTest{
+public class Server{
   public static String test="Tester";
   private ServerSocket serverSocket=null;
   private static volatile ArrayList<String> serverSideFiles;
@@ -16,13 +16,13 @@ public class ServerTest{
     return serverSideFiles;
   }
 
-  public ServerTest(int port)throws IOException{
+  public Server(int port)throws IOException{
     serverSocket=new ServerSocket(port);
     serverSideFiles=new ArrayList<String>();
   }
   public static void main(String[] args) {
     try{
-      ServerTest server=new ServerTest(8080);
+      Server server=new Server(8080);
       server.initialFileSetup();
       server.handleRequests();
     }catch(Exception e){
