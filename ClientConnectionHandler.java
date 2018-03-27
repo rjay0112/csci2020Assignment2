@@ -2,11 +2,11 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 
-public class ServerHandler implements Runnable{
+public class ClientConnectionHandler implements Runnable{
   private Socket socket;
   private BufferedReader requestInput=null;
   private PrintWriter responseOutput=null;
-  public ServerHandler(Socket socket){
+  public ClientConnectionHandler(Socket socket){
     this.socket=socket;
     try{
       requestInput=new BufferedReader(new InputStreamReader(

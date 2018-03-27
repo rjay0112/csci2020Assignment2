@@ -42,7 +42,7 @@ public class Server{
   public void handleRequests()throws IOException{
       while(true){
         Socket clientSocket=serverSocket.accept();
-        ServerHandler handler=new ServerHandler(clientSocket);
+        ClientConnectionHandler handler=new ClientConnectionHandler(clientSocket);
         Thread handlerThread=new Thread(handler);
         handlerThread.start();
       }
